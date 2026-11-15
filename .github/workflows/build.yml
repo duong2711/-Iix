@@ -1,0 +1,41 @@
+name: Build XiaoAI Back Bridge APK
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install SDK 35
+        run: sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build debug APK
+        run: gradle --no-daemon assembleDebug
+      - name: Verify APK exists
+        run: test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Verify APK signature
+        run: '"$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/debug/app-debug.apk'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: XiaoAI-Back-Bridge-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Publish installable APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk XiaoAIBackBridge-debug.apk
+          gh release create "apk-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" XiaoAIBackBridge-debug.apk --target "$GITHUB_SHA" --title "XiaoAI Back Bridge debug APK" --notes "Debug build for Android 14 and later."

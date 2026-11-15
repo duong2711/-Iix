@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <queries>
+        <package android:name="com.gemini.guard" />
+    </queries>
+    <application
+        android:allowBackup="false"
+        android:label="XiaoAI Back Bridge"
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- Explicit broadcast, no foreground activity: BACK goes to the Xiao AI window. -->
+        <receiver
+            android:name=".RelayReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.ldd.xiaoaitogemini.RUN_BACK" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
